@@ -114,7 +114,7 @@ public class FileTransUtil {
         headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String(file.getFilename().getBytes("gbk"), "iso-8859-1")));
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
-        System.out.println(file.getFilename());
+        log.debug("下载文件: {}", file.getFilename());
         return ResponseEntity
                 .ok()
                 .headers(headers)

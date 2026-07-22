@@ -50,11 +50,19 @@ public class Swagger2Config {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("online exam by springboot")
-                .description("在线考试系统 by 梁山广 at 2021")
-                .termsOfServiceUrl("https://github.com/19920625lsg/spring-boot-online-exam")
+                .title("在线考试系统 API")
+                .description("Spring Boot 在线考试系统接口文档\n\n" +
+                        "## 模块分组\n" +
+                        "- 用户认证 / 注册 / 个人信息（UserController）\n" +
+                        "- 题库管理（QuestionController，含批量导入）\n" +
+                        "- 考试管理（ExamController，含随机组卷、班级排名、主观题批改）\n" +
+                        "- 文件上传下载（FileController）\n\n" +
+                        "## 鉴权说明\n" +
+                        "所有需鉴权接口需在请求头携带 `Access-Token`（JWT）。\n" +
+                        "部分接口需要 `@RoleRequired({TEACHER, ADMIN})` 角色权限。")
+                .termsOfServiceUrl("https://github.com/fssl168/spring-boot-online-exam")
                 .version("2.0")
-                .contact(new Contact("liangshanguang", "https://github.com/lsgwr/spring-boot-online-exam", "liangshanguang2@gmail.com"))
+                .contact(new Contact("liangshanguang", "https://github.com/fssl168/spring-boot-online-exam", "liangshanguang2@gmail.com"))
                 .build();
     }
 }

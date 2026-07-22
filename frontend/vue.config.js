@@ -24,7 +24,10 @@ module.exports = {
   configureWebpack: {
     plugins: [
       // Ignore all locale files of moment.js
-      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/
+      }),
       new webpack.ProvidePlugin({
         $: 'jquery',
         jQuery: 'jquery'
@@ -42,6 +45,7 @@ module.exports = {
       .set('@layout', resolve('src/layout'))
       .set('@static', resolve('src/static'))
       .set('jquery', resolve('node_modules/jquery/src/jquery'))
+      .set('jQuery', resolve('node_modules/jquery/src/jquery'))
 
     const svgRule = config.module.rule('svg')
     svgRule.uses.clear()
@@ -76,16 +80,9 @@ module.exports = {
   css: {
     loaderOptions: {
       less: {
-        modifyVars: {
-          /* less 变量覆盖，用于自定义 ant design 主题 */
-
-          /*
-          'primary-color': '#F5222D',
-          'link-color': '#F5222D',
-          'border-radius-base': '4px',
-          */
-        },
-        javascriptEnabled: true
+        lessOptions: {  // 正确嵌套的配置结构
+          javascriptEnabled: true,
+        }
       }
     }
   },

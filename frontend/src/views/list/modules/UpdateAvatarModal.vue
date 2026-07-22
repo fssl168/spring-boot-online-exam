@@ -74,10 +74,8 @@ export default {
         }
       }).catch(err => {
         // 失败就弹出警告消息
-        that.$notification.error({
-          message: '考试更新失败',
-          description: err.message
-        })
+        // Batch 7.3.4：改用统一错误通知工具
+        that.$errorNotify.fromError('考试更新失败', err)
       })
     }
   }

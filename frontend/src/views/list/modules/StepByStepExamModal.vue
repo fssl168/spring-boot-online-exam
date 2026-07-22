@@ -20,7 +20,7 @@
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
           >
-            <a-input v-decorator="['name', {rules: [{required: true}]}]"/>
+            <a-input v-decorator="['name', {rules: rules.title}]"/>
           </a-form-item>
           <a-form-item
             label="考试限时"
@@ -39,7 +39,7 @@
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
           >
-            <a-textarea :rows="2" v-decorator="['desc', {rules: [{required: true}]}]"></a-textarea>
+            <a-textarea :rows="2" v-decorator="['desc', {rules: rules.description}]"></a-textarea>
           </a-form-item>
           <a-form-item
             label="考试封面"
@@ -171,6 +171,7 @@
 import '../../../plugins/summernote'
 import $ from 'jquery'
 import { getExamQuestionTypeList, examCreate } from '../../../api/exam'
+import { rules } from '../../../utils/validators'
 
 const stepForms = [
   ['name', 'elapse', 'desc'],
@@ -195,6 +196,8 @@ export default {
       confirmLoading: false,
       currentStep: 0,
       mdl: {},
+      // Batch 7.1.2：暴露通用校验规则到模板使用
+      rules,
 
       form: this.$form.createForm(this),
       // 单选题对象列表
@@ -237,17 +240,13 @@ export default {
           this.checks = res.data.checks
           this.judges = res.data.judges
         } else {
-          this.$notification.error({
-            message: '获取问题列表失败',
-            description: res.msg
-          })
+          // Batch 7.3.4：改用统一错误通知工具
+          this.$errorNotify.fromResponse('获取问题列表失败', res)
         }
       }).catch(err => {
         // 失败就弹出警告消息
-        this.$notification.error({
-          message: '获取问题列表失败',
-          description: err.message
-        })
+        // Batch 7.3.4：改用统一错误通知工具
+        this.$errorNotify.fromError('获取问题列表失败', err)
       })
     },
     popupScroll () {
@@ -294,10 +293,8 @@ export default {
             }
           }).catch(err => {
             // 失败就弹出警告消息
-            this.$notification.error({
-              message: '考试创建失败',
-              description: err.message
-            })
+            // Batch 7.3.4：改用统一错误通知工具
+            this.$errorNotify.fromError('考试创建失败', err)
           })
         } else {
           this.confirmLoading = false

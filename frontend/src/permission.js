@@ -4,7 +4,7 @@ import store from './store'
 
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
-import notification from 'ant-design-vue/es/notification'
+import errorNotify from './utils/errorNotification'
 import { setDocumentTitle, domTitle } from './utils/domUtil'
 import { ACCESS_TOKEN } from './store/mutation-types'
 
@@ -43,10 +43,8 @@ router.beforeEach((to, from, next) => {
             })
           })
           .catch(() => {
-            notification.error({
-              message: '错误',
-              description: '请求用户信息失败，请重试'
-            })
+            // Batch 7.3.4：改用统一错误通知工具
+            errorNotify.error({ message: '错误', description: '请求用户信息失败，请重试' })
             store.dispatch('Logout').then(() => {
               next({ path: '/user/login', query: { redirect: to.fullPath } })
             })

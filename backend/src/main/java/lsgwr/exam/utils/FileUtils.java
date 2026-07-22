@@ -7,6 +7,8 @@
 package lsgwr.exam.utils;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Base64Utils;
@@ -18,6 +20,7 @@ import java.net.URL;
 
 @Service
 public class FileUtils {
+    private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
     /**
      * 根据url拿取file
      *
@@ -81,7 +84,7 @@ public class FileUtils {
         File file = null;
         try {
             file = File.createTempFile("pattern", "." + suffix);
-            System.out.println("临时文件位置：" + file.getCanonicalPath());
+            log.debug("临时文件位置：{}", file.getCanonicalPath());
             FileOutputStream fstream = new FileOutputStream(file);
             stream = new BufferedOutputStream(fstream);
             stream.write(b);

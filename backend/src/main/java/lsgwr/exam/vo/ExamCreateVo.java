@@ -6,9 +6,11 @@
  ***********************************************************/
 package lsgwr.exam.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -28,6 +30,20 @@ public class ExamCreateVo {
      */
     @JsonProperty("elapse")
     private Integer examTimeLimit;
+
+    /**
+     * 考试有效期开始时间
+     */
+    @JsonProperty("startDate")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date examStartDate;
+
+    /**
+     * 考试有效期结束时间
+     */
+    @JsonProperty("endDate")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date examEndDate;
 
 
     /**

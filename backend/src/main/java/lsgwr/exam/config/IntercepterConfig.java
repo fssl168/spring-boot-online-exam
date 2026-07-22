@@ -7,6 +7,7 @@
 package lsgwr.exam.config;
 
 import lsgwr.exam.interceptor.LoginInterceptor;
+import lsgwr.exam.interceptor.RoleInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,10 +19,15 @@ public class IntercepterConfig implements WebMvcConfigurer {
     @Autowired
     private LoginInterceptor loginInterceptor;
 
+    @Autowired
+    private RoleInterceptor roleInterceptor;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 拦截user下的api
+        // 登录拦截器：校验token
         registry.addInterceptor(loginInterceptor).addPathPatterns("/api/**");
+        // 角色拦截器：校验 @RoleRequired 注解，必须在登录拦截器之后执行
+        registry.addInterceptor(roleInterceptor).addPathPatterns("/api/**");
     }
 
 }

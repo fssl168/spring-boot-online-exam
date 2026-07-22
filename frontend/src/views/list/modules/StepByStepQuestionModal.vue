@@ -208,17 +208,13 @@ export default {
           this.levels = res.data.levels
           this.types = res.data.types
         } else {
-          this.$notification.error({
-            message: '获取问题下拉选项失败',
-            description: res.msg
-          })
+          // Batch 7.3.4：改用统一错误通知工具
+          this.$errorNotify.fromResponse('获取问题下拉选项失败', res)
         }
       }).catch(err => {
         // 失败就弹出警告消息
-        this.$notification.error({
-          message: '获取问题下拉选项失败',
-          description: err.message
-        })
+        // Batch 7.3.4：改用统一错误通知工具
+        this.$errorNotify.fromError('获取问题下拉选项失败', err)
       })
     },
     popupScroll () {
@@ -275,10 +271,8 @@ export default {
             }
           }).catch(err => {
             // 失败就弹出警告消息
-            this.$notification.error({
-              message: '更新',
-              description: err.message
-            })
+            // Batch 7.3.4：改用统一错误通知工具
+            this.$errorNotify.fromError('更新', err)
           })
         } else {
           this.confirmLoading = false
@@ -302,10 +296,8 @@ export default {
         for (let i = 0; i < this.options.length; i++) {
           const option = this.options[i]
           if (option.content === values.option) {
-            this.$notification.error({
-              message: '错误',
-              description: '不要添加重复选项！'
-            })
+            // Batch 7.3.4：改用统一错误通知工具
+            this.$errorNotify.error({ message: '错误', description: '不要添加重复选项！' })
             return
           }
         }

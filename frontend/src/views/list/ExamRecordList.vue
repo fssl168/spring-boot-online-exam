@@ -69,17 +69,13 @@ export default {
       if (res.code === 0) {
         this.data = res.data
       } else {
-        this.$notification.error({
-          message: '获取考试记录失败',
-          description: res.msg
-        })
+        // Batch 7.3.4：改用统一错误通知工具
+        this.$errorNotify.fromResponse('获取考试记录失败', res)
       }
     }).catch(err => {
       // 失败就弹出警告消息
-      this.$notification.error({
-        message: '获取考试记录失败',
-        description: err.message
-      })
+      // Batch 7.3.4：改用统一错误通知工具
+      this.$errorNotify.fromError('获取考试记录失败', err)
     })
   }
 }

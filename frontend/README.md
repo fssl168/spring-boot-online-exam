@@ -17,7 +17,7 @@
 
 - Clone repo
 ```bash
-git clone git@github.com:lsgwr/spring-boot-online-exam.git
+git clone git@github.com:fssl168/spring-boot-online-exam.git
 cd spring-boot-online-exam/frontend/exam
 ```
 

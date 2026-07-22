@@ -43,10 +43,7 @@ public class LoginInterceptor implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("进入拦截器啦！");
         String uri = request.getRequestURI();
-        System.out.println(uri);
-        System.out.println("无需拦截的接口路径：" + authIgnoreUris);
         String[] authIgnoreUriArr = authIgnoreUris.split(",");
         // 登录和注册接口不需要进行token拦截和校验
         for (String authIgnoreUri : authIgnoreUriArr) {
@@ -65,6 +62,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             Claims claims = JwtUtils.checkJWT(token);
             if (claims == null) {
                 // 返回null说明用户篡改了token，导致校验失败
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 sendJsonMessage(response, JsonData.buildError("token无效，请重新登录"));
                 return false;
             }
@@ -72,11 +70,16 @@ public class LoginInterceptor implements HandlerInterceptor {
             String id = (String) claims.get("id");
             // 用户名
             String username = (String) claims.get("username");
-            // 把这两个参数放到请求中，从而可以在controller中获取到，不需要在controller中在用Jwt解密了,request.getAttribute("属性名")即可获取
+            // 用户角色id
+            Integer roleId = (Integer) claims.get("roleId");
+            // 把这些参数放到请求中，从而可以在controller中获取到，不需要在controller中在用Jwt解密了,request.getAttribute("属性名")即可获取
             request.setAttribute("user_id", id);
             request.setAttribute("username", username);
+            request.setAttribute("role_id", roleId);
             return true;
         }
+        // 未携带 token，返回 HTTP 401
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         sendJsonMessage(response, JsonData.buildError("token为null,请先登录！"));
         return false;
     }

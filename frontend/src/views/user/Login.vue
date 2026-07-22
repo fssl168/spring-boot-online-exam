@@ -20,7 +20,7 @@
               placeholder="请输入帐户名/邮箱/手机号"
               v-decorator="[
                 'username',
-                {rules: [{ required: true, message: '请输入帐户名/邮箱/手机号' }, { validator: handleUsernameOrEmail }], validateTrigger: 'change'}
+                {rules: [{ required: true, message: '请输入帐户名/邮箱/手机号' }, { validator: handleUsernameOrEmail }, { max: 64, message: '帐户名不能超过 64 个字符' }], validateTrigger: 'change'}
               ]"
             >
               <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }"/>
@@ -35,7 +35,7 @@
               placeholder="请输入密码"
               v-decorator="[
                 'password',
-                {rules: [{ required: true, message: '请输入密码' }], validateTrigger: 'blur'}
+                {rules: [{ required: true, message: '请输入密码' }, { max: 64, message: '密码不能超过 64 个字符' }], validateTrigger: 'blur'}
               ]"
             >
               <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }"/>
@@ -45,7 +45,7 @@
       </a-tabs>
 
       <a-form-item>
-        <a-checkbox v-decorator="['rememberMe']">自动登录</a-checkbox>
+        <a-checkbox v-decorator="['rememberMe', { valuePropName: 'checked', initialValue: rememberMeInitial }]">记住我（7天内自动登录）</a-checkbox>
         <router-link class="register" :to="{ name: 'register' }" style="float: right;">注册账户</router-link>
       </a-form-item>
 
@@ -76,6 +76,8 @@ import TwoStepCaptcha from '../../components/tools/TwoStepCaptcha'
 import { mapActions } from 'vuex'
 import { timeFix } from '../../utils/util'
 import { getSmsCaptcha, get2step } from '../../api/login'
+import { REMEMBER_USERNAME, REMEMBER_ME_FLAG } from '../../store/mutation-types'
+import Vue from 'vue'
 
 export default {
   components: {
@@ -90,6 +92,9 @@ export default {
       requiredTwoStepCaptcha: false,
       stepCaptchaVisible: false,
       form: this.$form.createForm(this),
+      // Batch 7.3.2：记住我回填状态
+      rememberMeInitial: false,
+      rememberedUsername: '',
       state: {
         time: 60,
         loginBtn: false,
@@ -100,6 +105,20 @@ export default {
     }
   },
   created () {
+    // Batch 7.3.2：从 localStorage 读取记住的用户名和勾选状态，自动回填到表单
+    const remembered = Vue.ls.get(REMEMBER_USERNAME)
+    const rememberFlag = Vue.ls.get(REMEMBER_ME_FLAG)
+    if (remembered) {
+      this.rememberedUsername = remembered
+      this.rememberMeInitial = !!rememberFlag
+      // 异步设置表单值：需等待 form 创建完成
+      this.$nextTick(() => {
+        this.form.setFieldsValue({
+          username: remembered,
+          rememberMe: !!rememberFlag
+        })
+      })
+    }
     get2step({})
       .then(res => {
         this.requiredTwoStepCaptcha = res.result.stepCode
@@ -148,7 +167,16 @@ export default {
           loginParams.loginType = state.loginType // 登录类型，0 email, 1 username
           loginParams.userInfo = values.username // 设置用户信息，因为email还是username不确定，所以用userinfo字段来代替
           loginParams.password = values.password // 用户的密码，无加密
+          // Batch 7.3.2：传递 rememberMe 到 store，由 store 决定 token 有效期
+          loginParams.rememberMe = !!values.rememberMe
           console.log(loginParams)
+          // Batch 7.3.2：登录前先持久化/清除记住的用户名，便于下次访问自动回填
+          if (loginParams.rememberMe) {
+            // 7天有效期，与 token 同步
+            Vue.ls.set(REMEMBER_USERNAME, values.username, 7 * 24 * 60 * 60 * 1000)
+          } else {
+            Vue.ls.remove(REMEMBER_USERNAME)
+          }
           Login(loginParams) // 请求登录接口
             .then((res) => this.loginSuccess(res)) // 成功
             .catch(err => this.requestFailed(err)) // 失败

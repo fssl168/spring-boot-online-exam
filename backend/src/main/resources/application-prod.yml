@@ -1,0 +1,11 @@
+# 生产环境配置：通过 --spring.profiles.active=prod 激活
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none # 生产环境不自动修改表结构
+
+logging:
+  level:
+    org.hibernate.type.descriptor.sql.BasicBinder: off
+    lsgwr.exam: info # 生产环境降低日志级别

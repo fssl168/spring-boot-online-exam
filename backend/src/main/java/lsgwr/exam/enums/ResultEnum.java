@@ -15,7 +15,12 @@ public enum ResultEnum {
     PRODUCT_STOCK_ERR(11, "考试信息异常"),
     ORDER_STATUS_ERR(14, "考试状态异常"),
     ORDER_UPDATE_ERR(15, "考试更新异常"),
-    ORDER_DETAIL_EMPTY(16, "用户详情为空");
+    ORDER_DETAIL_EMPTY(16, "用户详情为空"),
+    // 考试时间相关错误码
+    EXAM_NOT_STARTED(20, "考试尚未开始"),
+    EXAM_ENDED(21, "考试已结束"),
+    TIME_EXPIRED(22, "考试已超时，无法交卷"),
+    EXAM_NOT_AVAILABLE(23, "考试当前不可用");
 
     ResultEnum(Integer code, String message) {
         this.code = code;

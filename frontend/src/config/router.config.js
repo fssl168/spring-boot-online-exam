@@ -195,11 +195,15 @@ export const constantRouterMap = [
     component: () => import(/* webpackChunkName: "fail" */ '../views/exception/404')
   },
   {
-    path: '/exam/:id',
-    component: () => import(/* webpackChunkName: "fail" */ '../views/list/ExamDetail')
-  },
-  {
     path: '/exam/record/:exam_id/:record_id',
     component: () => import(/* webpackChunkName: "fail" */ '../views/list/ExamRecordDetail')
+  },
+  {
+    path: '/exam/stat/:examId',
+    component: () => import(/* webpackChunkName: "stat" */ '../views/list/ExamRecordStat')
+  },
+  {
+    path: '/exam/:id',
+    component: () => import(/* webpackChunkName: "fail" */ '../views/list/ExamDetail')
   }
 ]

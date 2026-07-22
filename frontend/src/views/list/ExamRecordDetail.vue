@@ -167,10 +167,8 @@ export default {
           that.examDetail = res.data
           return res.data
         } else {
-          this.$notification.error({
-            message: '获取考试详情失败',
-            description: res.msg
-          })
+          // Batch 7.3.4：改用统一错误通知工具
+          this.$errorNotify.fromResponse('获取考试详情失败', res)
         }
       })
     // 查看考试记录详情，渲染到前端界面
@@ -184,10 +182,8 @@ export default {
           that.objToMap()
           return res.data
         } else {
-          this.$notification.error({
-            message: '获取考试记录详情失败',
-            description: res.msg
-          })
+          // Batch 7.3.4：改用统一错误通知工具
+          this.$errorNotify.fromResponse('获取考试记录详情失败', res)
         }
       })
   },
@@ -237,10 +233,8 @@ export default {
             }
             return res.data
           } else {
-            this.$notification.error({
-              message: '获取问题详情失败',
-              description: res.msg
-            })
+            // Batch 7.3.4：改用统一错误通知工具
+            this.$errorNotify.fromResponse('获取问题详情失败', res)
           }
         })
     }

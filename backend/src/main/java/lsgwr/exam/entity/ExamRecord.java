@@ -12,10 +12,16 @@ import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import java.util.Date;
 
 @Data
 @Entity
+@Table(name = "exam_record", uniqueConstraints = {
+        // P0-2 修复 [D-01, I-02]：同一学生对同一考试只能有一条记录，防止重复交卷污染成绩统计
+        @UniqueConstraint(name = "uk_exam_joiner", columnNames = {"exam_id", "exam_joiner_id"})
+})
 public class ExamRecord {
     /**
      * 主键
@@ -53,4 +59,35 @@ public class ExamRecord {
      * 考试得分水平
      */
     private Integer examResultLevel;
+    /**
+     * 本次考试展示给考生的题目顺序（按 radio-check-judge 顺序拼接的 dash 分隔字符串）。
+     * 由于采用基于 userId 的确定性 shuffle，同一考生每次看到的顺序一致，
+     * 此字段作为审计快照，确保即使后续 shuffle 算法变更，历史记录仍可还原原始展示顺序。
+     */
+    private String questionOrder;
+    /**
+     * 主观题教师评分，格式：questionId:score,questionId:score
+     * NULL 表示无主观题或未批改
+     */
+    private String essayScores;
+    /**
+     * S-02 修复：考试记录状态。
+     * 0=IN_PROGRESS（开始未提交），1=SUBMITTED（已交卷），2=GRADED（已批改）
+     * NULL 视为 SUBMITTED（兼容存量数据）
+     */
+    private Integer status;
+    /**
+     * S-04 修复：交卷时考试有效期的审计快照（开始时间）。
+     * 即使教师后续修改 examStartDate，历史记录仍可还原原始有效期。
+     * NULL 表示存量数据（修复前已存在的记录）。
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date examStartDateSnapshot;
+    /**
+     * S-04 修复：交卷时考试有效期的审计快照（结束时间）。
+     * 即使教师后续修改 examEndDate，历史记录仍可还原原始有效期。
+     * NULL 表示存量数据（修复前已存在的记录）。
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date examEndDateSnapshot;
 }

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import { login, getInfo, logout } from '../../api/login'
-import { ACCESS_TOKEN } from '../../store/mutation-types'
+import { ACCESS_TOKEN, REMEMBER_ME_FLAG } from '../../store/mutation-types'
 import { welcome } from '../../utils/util'
 
 const user = {
@@ -34,13 +34,26 @@ const user = {
 
   actions: {
     // 登录
+    // Batch 7.3.2：新增 rememberMe 参数，勾选时延长 token 有效期至 7 天，否则保持 24 小时
     Login ({ commit }, userInfo) {
       return new Promise((resolve, reject) => {
         login(userInfo).then(response => {
           if (response.code === 0) {
             const token = response.data
-            // 把接口返回的token字段的值设置到localStorage的token键值对中，token的有效期是1天,Vue.ls中的ls是localStorage的意思
-            Vue.ls.set(ACCESS_TOKEN, token, 24 * 60 * 60 * 1000)
+            // 根据是否勾选"记住我"决定 token 有效期：
+            //   勾选 -> 7 天（长时间保持登录）
+            //   未勾选 -> 24 小时（会话级，浏览器关闭/到期需重新登录）
+            const rememberMe = userInfo && userInfo.rememberMe
+            const expireMs = rememberMe
+              ? 7 * 24 * 60 * 60 * 1000
+              : 24 * 60 * 60 * 1000
+            Vue.ls.set(ACCESS_TOKEN, token, expireMs)
+            // 持久化记住我标志，便于后续刷新页面时识别
+            if (rememberMe) {
+              Vue.ls.set(REMEMBER_ME_FLAG, true, expireMs)
+            } else {
+              Vue.ls.remove(REMEMBER_ME_FLAG)
+            }
             // 设置token事件,修改全局变量state中的token值，讲mutations中的SET_TOKEN事件
             commit('SET_TOKEN', token)
             resolve()
@@ -102,6 +115,8 @@ const user = {
         commit('SET_TOKEN', '')
         commit('SET_ROLES', [])
         Vue.ls.remove(ACCESS_TOKEN)
+        // Batch 7.3.2：登出时清除记住我标志（但保留记住的用户名，便于下次自动填充）
+        Vue.ls.remove(REMEMBER_ME_FLAG)
 
         logout(state.token).then(() => {
           resolve()

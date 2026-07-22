@@ -5,9 +5,12 @@
       :dataSource="dataSource"
     >
       <a-list-item slot="renderItem" slot-scope="item">
-        <a-card :hoverable="true" @click="joinExam(item.id)">
+        <a-card :hoverable="item.status === 1" @click="joinExam(item)">
           <a-card-meta>
-            <div style="margin-bottom: 3px" slot="title">{{ item.title }}</div>
+            <div style="margin-bottom: 3px" slot="title">
+              {{ item.title }}
+              <a-tag :color="statusColor(item.status)" style="margin-left: 8px;">{{ statusText(item.status) }}</a-tag>
+            </div>
             <a-avatar class="card-avatar" slot="avatar" :src="item.avatar | imgSrcFilter" size="large" />
             <div class="meta-content" slot="description">{{ item.content }}</div>
           </a-card-meta>
@@ -34,11 +37,27 @@ export default {
     }
   },
   methods: {
-    joinExam (id) {
+    joinExam (item) {
+      // 非进行中状态的考试不允许参加
+      if (item.status !== 1) {
+        this.$notification.warning({
+          message: '无法参加考试',
+          description: '该考试' + this.statusText(item.status) + '，无法进入'
+        })
+        return
+      }
       const routeUrl = this.$router.resolve({
-        path: `/exam/${id}`
+        path: `/exam/${item.id}`
       })
       window.open(routeUrl.href, '_blank')
+    },
+    statusText (status) {
+      const map = { 0: '未开始', 1: '进行中', 2: '已结束' }
+      return map[status] || '未知'
+    },
+    statusColor (status) {
+      const map = { 0: 'orange', 1: 'green', 2: 'red' }
+      return map[status] || 'default'
     }
   },
   mounted () {
@@ -48,17 +67,13 @@ export default {
       if (res.code === 0) {
         this.dataSource = res.data
       } else {
-        this.$notification.error({
-          message: '获取考试列表失败',
-          description: res.msg
-        })
+        // Batch 7.3.4：改用统一错误通知工具
+        this.$errorNotify.fromResponse('获取考试列表失败', res)
       }
     }).catch(err => {
       // 失败就弹出警告消息
-      this.$notification.error({
-        message: '获取考试列表失败',
-        description: err.message
-      })
+      // Batch 7.3.4：改用统一错误通知工具
+      this.$errorNotify.fromError('获取考试列表失败', err)
     })
   }
 }

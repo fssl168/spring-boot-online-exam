@@ -18,6 +18,16 @@ export function getQuestionAll () {
   })
 }
 
+// Batch 7.2.2：分页查询题目列表（服务端分页）
+// 参数：{ page: 0-based, size: 每页数, sort: '字段,asc|desc' }
+export function getQuestionPage (parameter) {
+  return axios({
+    url: api.ExamQuestionPage,
+    method: 'get',
+    params: parameter
+  })
+}
+
 export function questionUpdate (parameter) {
   console.log(parameter)
   return axios({
@@ -58,6 +68,16 @@ export function getExamAll () {
   return axios({
     url: api.ExamAll,
     method: 'get'
+  })
+}
+
+// Batch 7.2.3：分页查询考试列表（服务端分页）
+// 参数：{ page: 0-based, size: 每页数, sort: '字段,asc|desc' }
+export function getExamPage (parameter) {
+  return axios({
+    url: api.ExamPage,
+    method: 'get',
+    params: parameter
   })
 }
 
@@ -130,14 +150,18 @@ export function getQuestionDetail (questionId) {
   })
 }
 
-export function finishExam (examId, answersMap) {
+export function finishExam (examId, answersMap, timeCost) {
   console.log(answersMap)
+  const headers = {
+    'Content-Type': 'application/json;charset=UTF-8'
+  }
+  if (timeCost !== undefined && timeCost !== null) {
+    headers['X-Time-Cost'] = timeCost
+  }
   return axios({
     url: api.FinishExam + examId,
     method: 'post',
-    headers: {
-      'Content-Type': 'application/json;charset=UTF-8'
-    },
+    headers: headers,
     data: answersMap
   })
 }
@@ -145,6 +169,28 @@ export function finishExam (examId, answersMap) {
 export function getExamRecordList () {
   return axios({
     url: api.ExamRecordList,
+    method: 'get',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    }
+  })
+}
+
+// 获取指定考试的所有学生考试记录（教师查看）
+export function getExamAllRecords (examId) {
+  return axios({
+    url: api.ExamRecordAll + examId,
+    method: 'get',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    }
+  })
+}
+
+// 获取指定考试的成绩统计信息（教师查看）
+export function getExamScoreStat (examId) {
+  return axios({
+    url: api.ExamScoreStat + examId,
     method: 'get',
     headers: {
       'Content-Type': 'application/json;charset=UTF-8'
