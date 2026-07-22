@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",
+    "@babel/eslint-parser": "^7.29.7",
     "@babel/polyfill": "^7.2.5",
     "@nicolo-ribaudo/eslint-scope-5-internals": "5.1.1",
     "@vue/cli-plugin-babel": "^5.0.8",
@@ -62,6 +63,9 @@
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-vue": "^9.33.0",
+    "less": "^3.13.1",
+    "less-loader": "^11.1.4",
     "opencollective-postinstall": "^2.0.2",
     "vue-loader": "^15.9.8",
     "vue-style-loader": "^4.1.3",

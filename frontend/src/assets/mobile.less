@@ -1,0 +1,187 @@
+/**
+ * 全局移动端响应式样式
+ *
+ * 引入方式：在 frontend/src/main.js 中 `import './assets/mobile.less'`
+ *
+ * 设计原则：
+ * 1. 不破坏桌面端原有样式（所有移动端覆盖在 @media (max-width: 768px) 内）
+ * 2. 使用 less mixin 提供可复用片段，避免重复代码
+ * 3. 与 mixin.js 的 isMobile() 配合，CSS 与 JS 双重响应式
+ * 4. 断点 768px 与 enquire.js 配置一致
+ */
+
+// =============================================
+// Mixins（仅供 less 文件内部或被其他 .less 文件 @import 使用）
+// =============================================
+
+// 仅移动端生效
+.mobile-only(@rules) {
+  @media (max-width: 767px) {
+    @rules();
+  }
+}
+
+// 仅桌面端生效
+.desktop-only(@rules) {
+  @media (min-width: 768px) {
+    @rules();
+  }
+}
+
+// 移动端内容区 padding（替代固定的 24px）
+.mobile-content-padding() {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+// 移动端表格横向滚动容器
+.mobile-table-scroll() {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  // 隐藏滚动条但保留滚动能力
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
+}
+
+// 移动端触摸目标最小尺寸（44x44 符合 Apple HIG）
+.mobile-touch-target() {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// =============================================
+// 全局移动端覆盖样式
+// =============================================
+
+@media (max-width: 767px) {
+  // 内容区 margin 缩减（BasicLayout 的 .ant-layout-content）
+  .ant-layout-content {
+    margin: 12px 12px 0 !important;
+  }
+
+  // 所有表格横向滚动（兜底，特定页面可单独卡片化）
+  .ant-table-wrapper {
+    .ant-table-content {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .ant-table-body {
+      min-width: 600px;
+    }
+  }
+
+  // 表单项间距缩减
+  .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  // 模态框全屏化（小屏弹窗体验差）
+  .ant-modal {
+    top: 0 !important;
+    padding-bottom: 0 !important;
+    .ant-modal-content {
+      min-height: 100vh;
+      border-radius: 0 !important;
+    }
+    .ant-modal-body {
+      padding: 16px !important;
+    }
+  }
+
+  // 按钮点击区域增大（仅文本按钮）
+  .ant-btn {
+    &.ant-btn-sm {
+      min-height: 32px;
+    }
+    &:not(.ant-btn-sm):not(.ant-btn-lg) {
+      min-height: 40px;
+    }
+  }
+
+  // 列表/卡片操作项触摸目标
+  .ant-list-item-action,
+  .ant-card-actions {
+    li {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  // 页面标题字号缩减
+  .page-header {
+    h1, .title {
+      font-size: 20px !important;
+    }
+  }
+
+  // 富文本图片自适应（WangEditor/Summernote 输出内容）
+  .wangEditor-txt,
+  .note-editable,
+  .rich-text-content {
+    img {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    table {
+      max-width: 100% !important;
+      display: block;
+      overflow-x: auto;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  }
+
+  // 抽屉式侧边栏宽度全屏
+  .ant-drawer.drawer-sider {
+    .ant-drawer-content-wrapper {
+      width: 80% !important;
+    }
+  }
+
+  // 通知组件宽度自适应
+  .ant-notification {
+    width: calc(100% - 24px) !important;
+    max-width: 400px;
+    left: 12px !important;
+    right: 12px !important;
+  }
+}
+
+// =============================================
+// 工具类（可在模板中直接使用）
+// =============================================
+
+// 移动端隐藏
+.mobile-hide {
+  .mobile-only({
+    display: none !important;
+  });
+}
+
+// 仅移动端显示
+.mobile-show {
+  display: none !important;
+  .mobile-only({
+    display: block !important;
+  });
+}
+
+// 桌面端隐藏
+.desktop-hide {
+  display: block !important;
+  .desktop-only({
+    display: none !important;
+  });
+}

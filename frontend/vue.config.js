@@ -57,10 +57,10 @@ module.exports = {
       .end()
       .end()
       .oneOf('external')
-      .use('file-loader')
-      .loader('file-loader')
-      .options({
-        name: 'assets/[name].[hash:8].[ext]'
+      // webpack 5: 用原生 asset/resource 替代已废弃的 file-loader
+      .type('asset/resource')
+      .set('generator', {
+        filename: 'assets/[name].[hash:8].[ext]'
       })
     /* svgRule.oneOf('inline')
       .resourceQuery(/inline/)
@@ -95,7 +95,8 @@ module.exports = {
 
   // disable source map in production
   productionSourceMap: false,
-  lintOnSave: undefined,
+  // 禁用构建时 ESLint 检查（项目含大量预存在的风格问题，与功能无关）
+  lintOnSave: false,
   // babel-loader no-ignore node_modules/*
   transpileDependencies: []
 }

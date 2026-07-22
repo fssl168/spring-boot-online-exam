@@ -26,9 +26,12 @@
 
 <script>
 import { getExamCardList } from '../../api/exam'
+import { mixinDevice } from '../../utils/mixin'
+import { isMobileDevice } from '../../utils/mobile'
 
 export default {
   name: 'ExamCardList',
+  mixins: [mixinDevice],
   data () {
     return {
       description: '您可以随意点击下面的考试卡片开始一场属于您的考试',
@@ -49,7 +52,12 @@ export default {
       const routeUrl = this.$router.resolve({
         path: `/exam/${item.id}`
       })
-      window.open(routeUrl.href, '_blank')
+      // 批次 3.3：移动端 window.open 会被浏览器拦截，改用 router.push 当前页跳转
+      if (isMobileDevice() || this.isMobile()) {
+        this.$router.push({ path: `/exam/${item.id}` })
+      } else {
+        window.open(routeUrl.href, '_blank')
+      }
     },
     statusText (status) {
       const map = { 0: '未开始', 1: '进行中', 2: '已结束' }
@@ -128,5 +136,24 @@ export default {
     height: 64px;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+  }
+</style>
+
+<style lang="less">
+  /* 批次 3.3：移动端卡片样式优化 */
+  @media (max-width: 767px) {
+    .card-list {
+      .ant-card {
+        .ant-card-meta-title {
+          font-size: 15px;
+        }
+
+        .ant-card-actions {
+          li {
+            font-size: 13px;
+          }
+        }
+      }
+    }
   }
 </style>

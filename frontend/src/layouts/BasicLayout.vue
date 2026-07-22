@@ -40,7 +40,7 @@
       />
 
       <!-- layout content -->
-      <a-layout-content :style="{ height: '100%', margin: '24px 24px 0', paddingTop: fixedHeader ? '64px' : '0' }">
+      <a-layout-content :style="contentStyle">
         <multi-tab v-if="multiTab"></multi-tab>
         <transition name="page-transition">
           <route-view />
@@ -103,6 +103,16 @@ export default {
         return '256px'
       }
       return '80px'
+    },
+    // 移动端 content margin 动态化（批次 2.1）
+    // 桌面端保持 24px，移动端缩减为 12px 以节省屏幕宽度
+    contentStyle () {
+      const margin = this.isMobile() ? '12px 12px 0' : '24px 24px 0'
+      return {
+        height: '100%',
+        margin,
+        paddingTop: this.fixedHeader ? '64px' : '0'
+      }
     }
   },
   watch: {

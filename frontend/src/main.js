@@ -11,6 +11,7 @@ import bootstrap from './core/bootstrap'
 import './core/use'
 import './permission' // permission control
 import './utils/filter' // global filter
+import './assets/mobile.less' // global mobile responsive styles
 Vue.config.productionTip = false
 
 // mount axios Vue.$http and this.$http

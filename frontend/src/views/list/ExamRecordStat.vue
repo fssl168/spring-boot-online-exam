@@ -11,32 +11,32 @@
 
     <!-- 统计概览卡片 -->
     <a-row :gutter="16" style="margin-top: 16px" v-if="stat">
-      <a-col :span="4">
+      <a-col :xs="12" :sm="12" :lg="4">
         <a-statistic title="参考人数" :value="stat.totalCount" :valueStyle="{ color: '#1890ff' }">
           <a-icon type="team" slot="prefix" />
         </a-statistic>
       </a-col>
-      <a-col :span="4">
+      <a-col :xs="12" :sm="12" :lg="4">
         <a-statistic title="满分" :value="stat.examScore">
           <a-icon type="trophy" slot="prefix" />
         </a-statistic>
       </a-col>
-      <a-col :span="4">
+      <a-col :xs="12" :sm="12" :lg="4">
         <a-statistic title="平均分" :value="stat.avgScore" :precision="2" :valueStyle="{ color: '#52c41a' }">
           <a-icon type="calculator" slot="prefix" />
         </a-statistic>
       </a-col>
-      <a-col :span="4">
+      <a-col :xs="12" :sm="12" :lg="4">
         <a-statistic title="最高分" :value="stat.maxScore" :valueStyle="{ color: '#cf1322' }">
           <a-icon type="arrow-up" slot="prefix" />
         </a-statistic>
       </a-col>
-      <a-col :span="4">
+      <a-col :xs="12" :sm="12" :lg="4">
         <a-statistic title="最低分" :value="stat.minScore" :valueStyle="{ color: '#999' }">
           <a-icon type="arrow-down" slot="prefix" />
         </a-statistic>
       </a-col>
-      <a-col :span="4">
+      <a-col :xs="12" :sm="12" :lg="4">
         <a-statistic title="及格率(%)" :value="stat.passRate" :precision="2" :valueStyle="{ color: stat.passRate >= 60 ? '#52c41a' : '#cf1322' }">
           <a-icon type="like" slot="prefix" />
         </a-statistic>
@@ -89,12 +89,15 @@
 <script>
 import { getExamAllRecords, getExamScoreStat } from '../../api/exam'
 import { Chart } from 'viser-vue'
+import { mixinDevice } from '../../utils/mixin'
+import { isMobileDevice } from '../../utils/mobile'
 
 export default {
   name: 'ExamRecordStat',
   components: {
     'v-chart': Chart
   },
+  mixins: [mixinDevice],
   data () {
     return {
       examId: this.$route.params.examId,
@@ -189,7 +192,12 @@ export default {
       const routeUrl = this.$router.resolve({
         path: `/exam/record/${record.examRecord.examId}/${record.examRecord.examRecordId}`
       })
-      window.open(routeUrl.href, '_blank')
+      // 批次 4.3：移动端 window.open 会被拦截，改用 router.push
+      if (isMobileDevice() || this.isMobile()) {
+        this.$router.push({ path: `/exam/record/${record.examRecord.examId}/${record.examRecord.examRecordId}` })
+      } else {
+        window.open(routeUrl.href, '_blank')
+      }
     },
     goBack () {
       this.$router.back()
@@ -199,4 +207,74 @@ export default {
 </script>
 
 <style scoped>
+</style>
+
+<style lang="less" scoped>
+  /* 批次 4.3：移动端统计页样式 */
+  @media (max-width: 767px) {
+    /deep/ .ant-card-body {
+      padding: 12px !important;
+    }
+
+    // 顶部标题区按钮缩小
+    /deep/ .ant-card-head {
+      min-height: 48px;
+      padding: 0 12px;
+
+      .ant-card-head-title {
+        padding: 12px 0;
+        font-size: 14px;
+      }
+    }
+
+    // 统计卡片间距
+    .ant-row {
+      .ant-col {
+        margin-bottom: 12px;
+
+        .ant-statistic {
+          padding: 8px;
+          background: #fafafa;
+          border-radius: 4px;
+
+          /deep/ .ant-statistic-title {
+            font-size: 11px;
+          }
+
+          /deep/ .ant-statistic-content {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+
+    // 图表卡片间距
+    .ant-card {
+      margin-top: 12px !important;
+    }
+
+    // 表格横向滚动
+    /deep/ .ant-table-wrapper {
+      .ant-table-content {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .ant-table-body {
+        min-width: 600px;
+      }
+
+      .ant-table td,
+      .ant-table th {
+        font-size: 12px;
+        padding: 8px 6px !important;
+        white-space: nowrap;
+      }
+    }
+
+    // 返回按钮触摸区域
+    .ant-btn {
+      padding: 0 12px;
+    }
+  }
 </style>

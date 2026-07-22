@@ -336,4 +336,31 @@ export default {
       line-height: 40px;
     }
   }
+
+  /* 批次 3.2：移动端触摸优化 */
+  @media (max-width: 767px) {
+    .user-layout-register {
+      .register-button {
+        width: 100%;
+        height: 44px;
+        font-size: 16px;
+      }
+
+      .ant-input {
+        height: 44px;
+      }
+
+      .getCaptcha {
+        height: 44px;
+      }
+
+      .login {
+        float: none;
+        display: block;
+        text-align: center;
+        line-height: 44px;
+        margin-top: 12px;
+      }
+    }
+  }
 </style>

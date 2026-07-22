@@ -301,4 +301,22 @@ export default {
       }
     }
   }
+
+  /* 批次 3.1：移动端触摸优化 */
+  @media (max-width: 767px) {
+    .user-layout-login {
+      button.login-button {
+        height: 44px;
+        font-size: 16px;
+      }
+
+      .ant-input {
+        height: 44px;
+      }
+
+      .ant-checkbox-wrapper {
+        font-size: 13px;
+      }
+    }
+  }
 </style>

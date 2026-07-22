@@ -55,9 +55,44 @@ export default {
 
     &.mobile {
       .container {
+        padding: 24px 16px 48px;
+        background-size: cover;
+
+        .top {
+          .header {
+            height: 36px;
+            line-height: 36px;
+
+            .logo {
+              height: 36px;
+              margin-right: 8px;
+            }
+
+            .title {
+              font-size: 24px;
+            }
+          }
+
+          .desc {
+            font-size: 12px;
+            margin-top: 8px;
+            margin-bottom: 24px;
+          }
+        }
+
         .main {
-          max-width: 368px;
-          width: 98%;
+          max-width: 100%;
+          width: 100%;
+        }
+
+        .footer {
+          position: static;
+          padding: 0;
+          margin: 24px 0 0;
+
+          .links a:not(:last-child) {
+            margin-right: 16px;
+          }
         }
       }
     }

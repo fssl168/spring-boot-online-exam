@@ -380,3 +380,60 @@ export default {
   }
 }
 </script>
+
+<style lang="less" scoped>
+  /* 批次 4.1：移动端题目列表样式 */
+  @media (max-width: 767px) {
+    /deep/ .ant-card-body {
+      padding: 12px !important;
+    }
+
+    #toolbar {
+      margin-bottom: 8px;
+
+      .ant-btn {
+        padding: 0 12px;
+        margin-bottom: 4px;
+      }
+    }
+
+    // BootstrapTable 容器横向滚动
+    /deep/ .fixed-table-body,
+    /deep/ .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+
+      table {
+        min-width: 800px;
+      }
+    }
+
+    // 表格单元格字体缩小
+    /deep/ .table td,
+    /deep/ .table th {
+      font-size: 12px;
+      padding: 8px 6px !important;
+      white-space: nowrap;
+    }
+
+    // 操作按钮触摸区域
+    /deep/ .table .btn {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    // 分页器居中
+    /deep/ .fixed-table-pagination {
+      .pagination {
+        margin: 8px 0;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .page-item .page-link {
+        padding: 6px 10px;
+        min-height: 32px;
+      }
+    }
+  }
+</style>

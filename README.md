@@ -35,13 +35,22 @@ docker compose ps
 
 启动后访问 http://ip 即可，后端 API 默认端口 `9527`，MySQL 映射到宿主机 `3307`（避免与本地 3306 冲突）。
 
-可通过环境变量覆盖默认配置（参见 `.env` 或直接在 shell 中导出）：
+可通过环境变量覆盖默认配置（在 `docker-compose.yml` 中或直接在 shell 中导出）：
 
 | 环境变量 | 默认值 | 说明 |
 |---------|--------|------|
-| `DB_PASSWORD` | `exam_secret_2024` | MySQL root 密码 |
+| `DB_HOST` | `mysql`（容器）/ `192.168.88.251`（本地） | MySQL 主机 |
+| `DB_USERNAME` | `root` | MySQL 用户名 |
+| `DB_PASSWORD` | `exam_secret_2024` | MySQL 密码 |
+| `DB_NAME` | `exam` | 数据库名 |
+| `DB_POOL_MAX` | `20` | HikariCP 最大连接数 |
+| `DB_POOL_MIN` | `5` | HikariCP 最小空闲连接 |
 | `EXAM_JWT_SECRET` | `zh9f8a7s6df5gh4j3k2l1q0wertyuiopASDFGHJKL` | JWT 签名密钥（生产环境务必修改） |
-| `EXAM_TOKEN_EXPIRE_HOURS` | `24` | JWT token 过期时间（小时） |
+| `EXAM_TOKEN_EXPIRE_HOURS` | `2` | JWT token 过期时间（小时） |
+| `EXAM_JPA_DDL_AUTO` | `validate` | JPA DDL 模式（开发可设为 `update`） |
+| `EXAM_LOG_LEVEL` | `info` | 后端日志级别 |
+| `EXAM_TRACE_SAMPLER` | `0.1` | Sleuth 链路追踪采样率（0~1） |
+| `FILE_UPLOAD_ROOT` | `/data/exam/uploads/` | 文件上传根目录 |
 
 ### 1.3 Linux 脚本启动
 
@@ -96,35 +105,46 @@ npm run serve
 
 - 考试计时：前端倒计时 + 后端时限双重校验，超时自动锁定答题并触发自动交卷
 - 考试有效期窗口：`examStartDate` / `examEndDate` 服务端校验，未开始/已结束均拒绝进入
-- 随机组卷：教师可指定各题型抽取数量，服务端 `Collections.shuffle` 随机出题
+- 考试手动状态覆盖：`examManualStatus` 支持教师手动结束/暂停考试，优先级高于时间计算
+- 随机组卷：教师可指定各题型抽取数量，服务端基于时间戳种子随机出题
 - 交卷二次确认：`Modal.confirm` 防止误交
+- 重复提交防护：`ExamRecord` 唯一约束 `(examId, examJoinerId)` + 服务端校验
 - 草稿自动保存：每 30 秒写入 localStorage，刷新/误关页面可恢复
+- 考试记录管理：学生可删除自己的记录（考试结束后），教师/管理员可重置记录
+- 考试有效期审计快照：交卷时捕获 `examStartDateSnapshot` / `examEndDateSnapshot`，便于追溯
 - 软删除机制：题目和考试使用 `questionVisible` / `examVisible` 字段，不实际删除，保护关联数据完整
 
 **系统功能**：
 
-- 系统公告：管理员发布，首页展示，支持置顶与类型分类（info/success/warning/error）
+- 系统公告：管理员发布，首页展示，支持置顶与类型分类（info/success/warning/error），分页查询
 - 记住我：登录页可选 7 天免登录（token 过期时间动态调整为 24h 或 7d）
+- 暴力破解防护：登录失败 5 次锁定账号 15 分钟（`LoginAttemptService` 滑动窗口计数）
+- 密码复杂度校验：注册时强制大小写字母 + 数字组合，8-64 位
+- 审计日志：关键操作（注册/登录/改密/角色变更/考试 CRUD/交卷/批改/记录删除重置/公告 CRUD/批量导入）写入 `logs/audit.log`
+- 监控与链路追踪：`/actuator/prometheus` 暴露 QPS/延迟/错误率指标，Sleuth 采样率 10%
 - 全局 Loading 状态管理：Vuex 模块统一调度
 - 统一错误通知：`ErrorNotification` 工具收口所有 `notification.error` 调用
-- XSS 防护：响应数据递归清洗 + v-html 安全渲染
+- XSS 防护：响应数据递归清洗 + v-html 安全渲染 + 公告内容服务端过滤
 - 请求取消：`CancelToken` 自动取消重复请求
 
 ### 2.2 软件架构
 
 **前后端分离，前端组件化，便于二次开发。**
 
-**后端技术栈**（`backend/`，101 个 Java 源文件）：
+**后端技术栈**（`backend/`，107 个 Java 源文件）：
 
 - Spring Boot 2.7.18 + JPA (Hibernate)
-- MySQL 8.0 + Druid 连接池
+- MySQL 8.0 + HikariCP 连接池
 - JWT 鉴权（`JwtUtils` + `LoginInterceptor` + `RoleInterceptor` + `@RoleRequired` 注解）
-- Spring Validation（`@NotBlank` / `@Size` / `@Valid`）
+- Spring Validation（`@NotBlank` / `@Size` / `@Pattern` / `@Valid`）
 - Apache POI 4.1.2（Excel 批量导入）
 - Swagger2（API 文档，按模块分组）
 - Hutool（工具类）
 - BCrypt 密码加密（`PasswordEncoder`）
 - 全局异常处理（`GlobalExceptionHandler` 统一 400/401/403/500 返回）
+- Spring Boot Actuator + Micrometer Prometheus（监控指标，`/actuator/prometheus`）
+- Spring Cloud Sleuth 3.1.9（链路追踪）
+- Logback 审计日志（`AuditLogger` 独立输出到 `logs/audit.log`，保留 90 天）
 
 **前端技术栈**（`frontend/`）：
 
@@ -199,38 +219,44 @@ spring-boot-online-exam/
 ├── backend/                    # 后端 Spring Boot 项目
 │   ├── src/main/java/lsgwr/exam/
 │   │   ├── annotation/         # @RoleRequired 自定义注解
-│   │   ├── config/             # CORS / JWT / Swagger / 拦截器配置
-│   │   ├── controller/         # REST 控制器（ExamController/UserController/AnnouncementController...）
-│   │   ├── entity/             # JPA 实体（Exam/Question/User/Announcement...）
+│   │   ├── component/          # LoginAttemptService（暴力破解防护）
+│   │   ├── config/             # CORS / JwtConfig / Swagger / IntercepterConfig
+│   │   ├── controller/         # REST 控制器（Exam/User/Announcement/UploadDownload）
+│   │   ├── entity/             # JPA 实体（Exam/Question/User/Announcement/ExamRecord...）
 │   │   ├── enums/              # 枚举（RoleEnum/ExamStatusEnum/ResultEnum...）
-│   │   ├── exception/          # GlobalExceptionHandler 全局异常
+│   │   ├── exception/          # GlobalExceptionHandler + ExamException
 │   │   ├── interceptor/        # LoginInterceptor + RoleInterceptor
-│   │   ├── repository/         # JPA Repository（含 Pageable 分页查询）
-│   │   ├── service/            # 业务服务接口与实现
-│   │   ├── util/               # IdListBuilder / AnswerParser 工具类
-│   │   ├── utils/              # JwtUtils / FileUtils / ResultVOUtil
-│   │   └── vo/                 # 视图对象（PageResultVo / ExamVo / AnnouncementVo...）
+│   │   ├── repository/         # JPA Repository（含 Pageable 分页 + 软删除过滤）
+│   │   ├── service/            # 业务服务接口与实现（Exam/User/Announcement）
+│   │   ├── util/               # AuditLogger / IdListBuilder / AnswerParser 工具类
+│   │   ├── utils/              # JwtUtils / FileUtils / FileTransUtil / ResultVOUtil
+│   │   └── vo/                 # 视图对象（PageResultVo / ExamVo / AnnouncementVo / ClassRankingVo...）
 │   └── src/main/resources/
 │       ├── application.yml     # 开发环境配置
-│       └── application-prod.yml# 生产环境配置
+│       ├── application-prod.yml# 生产环境配置
+│       └── logback-spring.xml  # 日志配置（审计日志独立输出，保留 90 天）
 ├── frontend/                   # 前端 Vue 项目
 │   └── src/
-│       ├── api/                # 接口封装（exam.js / announcement.js / login.js...）
+│       ├── api/                # 接口封装（exam.js / announcement.js / index.js...）
 │       ├── components/         # 通用组件（AnnouncementList / Menu / SettingDrawer...）
-│       ├── core/               # use.js（全局插件注册）/ bootstrap / directives
+│       ├── core/               # use.js（全局插件注册）/ bootstrap / directives（hasRole）
 │       ├── layouts/            # BasicLayout / UserLayout 布局
 │       ├── store/              # Vuex（user / permission / app / loading 模块）
-│       ├── utils/              # request.js / errorNotification.js / validators.js / xss.js
+│       ├── utils/              # request.js / errorNotification.js / validators.js / xss.js / role.js
 │       └── views/              # 页面（list / user / dashboard / home / account...）
 ├── doc/                        # 文档与资源
 │   ├── sql/                    # 数据库初始化脚本
 │   ├── deploy/                 # 部署相关（nginx.conf / README）
 │   ├── images/                 # 截图
+│   ├── UPGRADE-PLAN.md         # 升级实施清单
 │   ├── UPGRADE-PLAN-From-Codex.md  # 升级实施清单（v2.0 完成 0~7 批）
+│   ├── BACKEND-PIPELINE-AUDIT.md   # 后端管线对齐审查报告（62 项问题 + 修复跟踪）
+│   ├── BACKEND-FIX-PLAN.md     # 后端修复实施计划
 │   └── 项目分析报告.md
 ├── Dockerfile                  # 后端多阶段构建
 ├── docker-compose.yml          # MySQL + Backend + Frontend 一键部署
 ├── nginx.conf                  # 前端 Nginx 配置
+├── entrypoint.sh               # Docker 容器入口脚本
 ├── build.sh / start.sh         # 构建与启动脚本
 └── README.md                   # 本文档
 ```
@@ -242,7 +268,9 @@ spring-boot-online-exam/
 3. 提交代码
 4. 新建 Pull Request
 
-## 6. 升级历程（v2.0）
+## 6. 升级历程
+
+### 6.1 v2.0 系统性升级（7 批次）
 
 本项目经过 7 个批次的系统性升级，详细清单见 [doc/UPGRADE-PLAN-From-Codex.md](doc/UPGRADE-PLAN-From-Codex.md)。
 
@@ -257,6 +285,16 @@ spring-boot-online-exam/
 | 第 6 批 | 可扩展性与基础设施 | 配置外部化（dev/prod profiles + 环境变量）、Docker 多阶段构建、Swagger API 文档分组 |
 | 第 7 批 | 前端整体优化 | XSS 响应清洗、表单校验规则、`ExamDetail` 题目列表 windowing、BootstrapTable 服务端分页、系统公告组件、记住我、全局 Loading、统一 `ErrorNotification` 工具、请求取消机制 |
 
+### 6.2 后端管线对齐审查与 62 项修复
+
+v2.0 升级后对 107 个 Java 源文件进行管线对齐审查，识别 62 项问题（12 P0 + 22 P1 + 28 P2），已按优先级全部修复。详细报告见 [doc/BACKEND-PIPELINE-AUDIT.md](doc/BACKEND-PIPELINE-AUDIT.md)，修复计划见 [doc/BACKEND-FIX-PLAN.md](doc/BACKEND-FIX-PLAN.md)。
+
+| 优先级 | 数量 | 关键修复内容 |
+|--------|------|-------------|
+| P0 紧急 | 12 项 | `judge()` 判分循环错误、`ExamRecord` 唯一约束 + 重复提交防护、越权访问防护（`getRecordDetail`/`updateExam`/`deleteExam`/`questionUpdate`）、文件下载路径穿越防护、`register` 密码哈希泄露 |
+| P1 分批 | 22 项 | `examResultLevel` 计算、`batchImport` 外键校验、`assert` → `ExamException` 异常重构、N+1 查询批量优化、`examManualStatus` 状态机、`ddl-auto` 改为 `validate`、JWT 密钥强度校验、暴力破解防护 |
+| P2 择机 | 28 项 | 密码复杂度校验、XSS 过滤、分层架构修正（`AnnouncementController` 走 Service）、`AuditLogger` 审计日志、Actuator + Prometheus 监控、Sleuth 链路追踪、HikariCP 连接池调优、考试记录删除/重置接口、公告分页、考试有效期审计快照 |
+
 ## 7. Todo
 
 + `√` 0. 修复 issue 提到的 bug：题目创建失败
@@ -269,5 +307,6 @@ spring-boot-online-exam/
 + `√` 7. 老师能查到所有学生的成绩以及考试的统计信息（`getExamAllRecords` + `getExamScoreStat` + `ExamRecordStat` 页面）
 + `√` 8. 数据分析功能（班级排名 `ClassRankingVo` + 主观题批改 `EssayGradeVo`）
 + `√` 9. 支持容器化一键部署（`Dockerfile` + `docker-compose.yml` + `nginx.conf`）
-+ 10. 支持移动端（uniapp / 适配响应式布局）
++ `√` 10. 后端管线对齐审查与 62 项问题修复（P0/P1/P2 全部完成）
++ 11. 支持移动端（uniapp / 适配响应式布局）
 + ......抓紧做吧，争取每周末做一点......

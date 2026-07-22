@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <a-card style="margin-top: 24px" :bordered="false" title="参加过的考试">
+  <div class="exam-record-list-wrapper">
+    <a-card class="record-card" style="margin-top: 24px" :bordered="false" title="参加过的考试">
       <div slot="extra">
-        <a-input-search style="margin-left: 16px; width: 272px;"/>
+        <a-input-search class="record-search" style="margin-left: 16px; width: 272px;"/>
       </div>
       <a-list size="large">
         <a-list-item :key="index" v-for="(item, index) in data">
@@ -10,7 +10,7 @@
             <a-avatar slot="avatar" size="large" shape="square" :src="item.exam.examAvatar | imgSrcFilter"/>
             <a slot="title">{{ item.exam.examName }}</a>
           </a-list-item-meta>
-          <div slot="actions">
+          <div slot="actions" class="record-actions">
             <a @click="viewExamRecordDetail(item.examRecord)">查看考试详情</a>
           </div>
           <div class="list-content">
@@ -37,6 +37,8 @@
 <script>
 import HeadInfo from '../../components/tools/HeadInfo'
 import { getExamRecordList } from '../../api/exam'
+import { mixinDevice } from '../../utils/mixin'
+import { isMobileDevice } from '../../utils/mobile'
 
 export default {
   // 考试记录列表，记录考生参加过地所有考试和考试成绩
@@ -44,6 +46,7 @@ export default {
   components: {
     HeadInfo
   },
+  mixins: [mixinDevice],
   data () {
     return {
       data: {}
@@ -59,8 +62,12 @@ export default {
       const routeUrl = this.$router.resolve({
         path: `/exam/record/${record.examId}/${record.examRecordId}`
       })
-      // 和点击考试卡片效果一样，跳转到考试页面，里面有所有题目的情况，相当于就是详情了
-      window.open(routeUrl.href, '_blank')
+      // 批次 3.5：移动端 window.open 会被拦截，改用 router.push
+      if (isMobileDevice() || this.isMobile()) {
+        this.$router.push({ path: `/exam/record/${record.examId}/${record.examRecordId}` })
+      } else {
+        window.open(routeUrl.href, '_blank')
+      }
     }
   },
   mounted () {
@@ -103,6 +110,63 @@ export default {
       margin-top: 4px;
       margin-bottom: 0;
       line-height: 22px;
+    }
+  }
+
+  /* 批次 3.5：移动端记录列表样式 */
+  @media (max-width: 767px) {
+    .record-card {
+      margin-top: 12px !important;
+
+      .record-search {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 8px;
+      }
+
+      .ant-list-item {
+        display: block !important;
+        padding: 12px 0 !important;
+
+        .ant-list-item-meta {
+          margin-bottom: 8px;
+        }
+
+        .record-actions {
+          margin-top: 8px;
+          margin-bottom: 8px;
+
+          a {
+            display: inline-block;
+            padding: 6px 12px;
+            min-height: 36px;
+            line-height: 24px;
+          }
+        }
+      }
+
+      .list-content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+
+        .list-content-item {
+          margin-left: 0;
+          margin-right: 8px;
+          margin-bottom: 8px;
+          font-size: 12px;
+          flex: 0 0 30%;
+
+          span {
+            font-size: 11px;
+          }
+
+          p {
+            font-size: 13px;
+            font-weight: 500;
+          }
+        }
+      }
     }
   }
 </style>

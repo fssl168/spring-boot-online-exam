@@ -25,6 +25,8 @@ import { getExamPage } from '../../api/exam'
 import StepByStepExamModal from './modules/StepByStepExamModal'
 import ExamEditModal from './modules/ExamEditModal'
 import UpdateAvatarModal from '@views/list/modules/UpdateAvatarModal'
+import { mixinDevice } from '../../utils/mixin'
+import { isMobileDevice } from '../../utils/mobile'
 
 export default {
   name: 'ExamTableList',
@@ -33,6 +35,7 @@ export default {
     ExamEditModal,
     StepByStepExamModal
   },
+  mixins: [mixinDevice],
   data () {
     const that = this // 方便在bootstrap-table中引用methods
     return {
@@ -165,15 +168,24 @@ export default {
       const routeUrl = this.$router.resolve({
         path: `/exam/${record.id}`
       })
-      // 和点击考试卡片效果一样，跳转到考试页面，里面有所有题目的情况，相当于就是详情了
-      window.open(routeUrl.href, '_blank')
+      // 批次 4.2：移动端 window.open 会被拦截，改用 router.push
+      if (isMobileDevice() || this.isMobile()) {
+        this.$router.push({ path: `/exam/${record.id}` })
+      } else {
+        window.open(routeUrl.href, '_blank')
+      }
     },
     handleStat (record) {
       // 查看考试的成绩统计信息
       const routeUrl = this.$router.resolve({
         path: `/exam/stat/${record.id}`
       })
-      window.open(routeUrl.href, '_blank')
+      // 批次 4.2：移动端 window.open 会被拦截，改用 router.push
+      if (isMobileDevice() || this.isMobile()) {
+        this.$router.push({ path: `/exam/stat/${record.id}` })
+      } else {
+        window.open(routeUrl.href, '_blank')
+      }
     },
     handleOk () {
       this.loadAll()
@@ -209,3 +221,60 @@ export default {
   }
 }
 </script>
+
+<style lang="less" scoped>
+  /* 批次 4.2：移动端考试列表样式 */
+  @media (max-width: 767px) {
+    /deep/ .ant-card-body {
+      padding: 12px !important;
+    }
+
+    #toolbar {
+      margin-bottom: 8px;
+
+      .ant-btn {
+        padding: 0 12px;
+        margin-bottom: 4px;
+      }
+    }
+
+    // BootstrapTable 容器横向滚动
+    /deep/ .fixed-table-body,
+    /deep/ .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+
+      table {
+        min-width: 800px;
+      }
+    }
+
+    // 表格单元格字体缩小
+    /deep/ .table td,
+    /deep/ .table th {
+      font-size: 12px;
+      padding: 8px 6px !important;
+      white-space: nowrap;
+    }
+
+    // 操作按钮触摸区域
+    /deep/ .table .btn {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    // 分页器居中
+    /deep/ .fixed-table-pagination {
+      .pagination {
+        margin: 8px 0;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .page-item .page-link {
+        padding: 6px 10px;
+        min-height: 32px;
+      }
+    }
+  }
+</style>
