@@ -1,0 +1,19 @@
+{
+  "name": "spring-boot-online-exam-miniapp",
+  "version": "1.0.0",
+  "description": "在线考试小程序端（uniapp）",
+  "main": "main.js",
+  "scripts": {
+    "dev:mp-weixin": "uni-app-cli build --platform mp-weixin --watch",
+    "build:mp-weixin": "uni-app-cli build --platform mp-weixin",
+    "dev:h5": "uni-app-cli build --platform h5 --watch",
+    "build:h5": "uni-app-cli build --platform h5"
+  },
+  "dependencies": {
+    "uview-ui": "^2.0.39"
+  },
+  "devDependencies": {
+    "sass": "^1.55.0",
+    "sass-loader": "^10.4.1"
+  }
+}
